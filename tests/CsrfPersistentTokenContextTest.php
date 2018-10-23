@@ -110,7 +110,7 @@ class CsrfPersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
     }
 
-    public function testSessionIsClearedOnTokenMismatch()
+    public function testSessionTokenIsClearedOnTokenMismatch()
     {
         $session = new SessionData($manager = new FakeSession(), $this->token('foo', 'bar'));
         $guard   = new CsrfPersistentTokenContext($session);

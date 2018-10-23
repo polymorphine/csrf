@@ -60,7 +60,8 @@ class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfProtection
 
         if ($valid) { return; }
 
-        $this->session->clear();
+        $this->session->remove(self::SESSION_CSRF_KEY);
+        $this->session->remove(self::SESSION_CSRF_TOKEN);
         throw new Exception\CsrfTokenMismatchException();
     }
 
