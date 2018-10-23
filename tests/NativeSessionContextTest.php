@@ -15,9 +15,9 @@ use PHPUnit\Framework\TestCase;
 use Polymorphine\Context\Session;
 use Polymorphine\Context\Tests\Doubles\FakeRequestHandler;
 use Polymorphine\Context\Tests\Doubles\FakeResponse;
-use Polymorphine\Context\Tests\Doubles\FakeResponseHeaders;
 use Polymorphine\Context\Tests\Doubles\FakeServerRequest;
 use Polymorphine\Context\Tests\Fixtures\SessionGlobalState;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 
@@ -34,77 +34,77 @@ class NativeSessionContextTest extends TestCase
 
     public function testInstantiation()
     {
-        $context = $this->context($headers);
+        $context = $this->context();
         $this->assertInstanceOf(MiddlewareInterface::class, $context);
         $this->assertInstanceOf(Session::class, $context);
     }
 
     public function testSessionInitialization()
     {
-        $context = $this->context($headers, ['secure' => true]);
+        $context = $this->context(['Secure' => true]);
         $handler = $this->handler(function () use ($context) {
             $context->data()->set('foo', 'bar');
         });
 
-        $context->process($this->request(), $handler);
+        $response = $context->process($this->request(), $handler);
         $this->assertSame(['foo' => 'bar'], SessionGlobalState::$data);
 
         $header = [SessionGlobalState::$name . '=DEFAULT_SESSION_ID; Path=/; Secure; HttpOnly; SameSite=Lax'];
-        $this->assertSame($header, $headers->data['Set-Cookie']);
+        $this->assertSame($header, $this->cookie($response));
     }
 
     public function testSessionResume()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
-        $context = $this->context($headers);
+        $context = $this->context();
         $handler = $this->handler(function () use ($context) {
             $session = $context->data();
             $session->set('foo', $session->get('foo') . '-baz');
         });
 
-        $context->process($this->request(true), $handler);
+        $response = $context->process($this->request(true), $handler);
         $this->assertSame(['foo' => 'bar-baz'], SessionGlobalState::$data);
 
-        $this->assertSame([], $headers->data);
+        $this->assertSame([], $this->cookie($response));
     }
 
     public function testSessionRegenerateId()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
-        $context = $this->context($headers, ['httpOnly' => false, 'sameSite' => 'Strict']);
+        $context = $this->context(['HttpOnly' => false, 'SameSite' => 'Strict']);
         $handler = $this->handler(function () use ($context) {
             $context->resetContext();
         });
 
-        $context->process($this->request(true), $handler);
+        $response = $context->process($this->request(true), $handler);
         $this->assertSame(['foo' => 'bar'], SessionGlobalState::$data);
 
         $header = [SessionGlobalState::$name . '=REGENERATED_SESSION_ID; Path=/; SameSite=Strict'];
-        $this->assertSame($header, $headers->data['Set-Cookie']);
+        $this->assertSame($header, $this->cookie($response));
     }
 
     public function testSessionDestroy()
     {
         SessionGlobalState::$data = ['foo' => 'bar'];
 
-        $context = $this->context($headers);
+        $context = $this->context();
         $handler = $this->handler(function () use ($context) {
             $context->data()->clear();
         });
 
-        $context->process($this->request(true), $handler);
+        $response = $context->process($this->request(true), $handler);
         $this->assertSame([], SessionGlobalState::$data);
 
-        $header = [SessionGlobalState::$name . '=; Path=/; Expires=Thursday, 02-May-2013 00:00:00 UTC; MaxAge=-157680000'];
-        $this->assertSame($header, $headers->data['Set-Cookie']);
+        $header = [SessionGlobalState::$name . '=; Path=/; Expires=Thursday, 02-May-2013 00:00:00 UTC; MaxAge=-157680000; HttpOnly; SameSite=Lax'];
+        $this->assertSame($header, $this->cookie($response));
     }
 
     public function testProcessingWhileSessionStarted_ThrowsException()
     {
         SessionGlobalState::$status = PHP_SESSION_ACTIVE;
-        $context = $this->context($headers);
+        $context = $this->context();
 
         $this->expectException(RuntimeException::class);
         $context->process($this->request(true), $this->handler());
@@ -112,7 +112,7 @@ class NativeSessionContextTest extends TestCase
 
     public function testCallingSessionWithoutContextProcessing_ThrowsException()
     {
-        $context = $this->context($headers);
+        $context = $this->context();
 
         $this->expectException(RuntimeException::class);
         $context->data();
@@ -134,9 +134,13 @@ class NativeSessionContextTest extends TestCase
         return new FakeRequestHandler(new FakeResponse(), $process);
     }
 
-    private function context(&$headersContext, $cookieOptions = [])
+    private function cookie(ResponseInterface $response)
     {
-        $headersContext = new FakeResponseHeaders();
-        return new Session\NativeSessionContext($headersContext, $cookieOptions);
+        return $response->getHeader('Set-Cookie');
+    }
+
+    private function context(array $cookieOptions = [])
+    {
+        return Session\NativeSessionContext::withCookie($cookieOptions);
     }
 }
