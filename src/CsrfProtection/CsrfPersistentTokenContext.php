@@ -37,7 +37,9 @@ class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfProtection
         $unsafeMethods     = ['POST', 'PUT', 'DELETE', 'PATCH', 'TRACE', 'CONNECT'];
         $signatureRequired = in_array($request->getMethod(), $unsafeMethods, true);
 
-        $signatureRequired and $this->tokenMatch($request->getParsedBody());
+        if ($signatureRequired) {
+            $this->tokenMatch($request->getParsedBody());
+        }
 
         return $handler->handle($request);
     }
@@ -77,9 +79,10 @@ class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfProtection
 
     private function generateToken(): CsrfToken
     {
-        $this->session->set(self::SESSION_CSRF_KEY, uniqid());
-        $this->session->set(self::SESSION_CSRF_TOKEN, bin2hex(random_bytes(32)));
+        $token = new CsrfToken(uniqid(), bin2hex(random_bytes(32)));
+        $this->session->set(self::SESSION_CSRF_KEY, $token->name);
+        $this->session->set(self::SESSION_CSRF_TOKEN, $token->hash);
 
-        return $this->sessionToken();
+        return $token;
     }
 }
