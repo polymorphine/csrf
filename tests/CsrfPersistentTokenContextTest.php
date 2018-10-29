@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Polymorphine/Context package.
+ * This file is part of Polymorphine/Csrf package.
  *
  * (c) Shudd3r <q3.shudder@gmail.com>
  *
@@ -9,17 +9,17 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\App\Tests\Context;
+namespace Polymorphine\Csrf\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Polymorphine\Context\CsrfProtection\CsrfPersistentTokenContext;
-use Polymorphine\Context\CsrfProtection\CsrfToken;
-use Polymorphine\Context\CsrfProtection\Exception;
-use Polymorphine\Context\Session\SessionData;
-use Polymorphine\Context\Tests\Doubles\CallbackHandler;
-use Polymorphine\Context\Tests\Doubles\FakeResponse;
-use Polymorphine\Context\Tests\Doubles\FakeServerRequest;
-use Polymorphine\Context\Tests\Doubles\FakeSession;
+use Polymorphine\Csrf\CsrfContext\CsrfPersistentTokenContext;
+use Polymorphine\Csrf\CsrfContext\CsrfToken;
+use Polymorphine\Csrf\CsrfContext\Exception;
+use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Csrf\Tests\Doubles\FakeRequestHandler;
+use Polymorphine\Csrf\Tests\Doubles\FakeServerRequest;
+use Polymorphine\Csrf\Tests\Doubles\FakeResponse;
+use Polymorphine\Csrf\Tests\Doubles\FakeSession;
 
 
 class CsrfPersistentTokenContextTest extends TestCase
@@ -181,7 +181,7 @@ class CsrfPersistentTokenContextTest extends TestCase
 
     private function handler()
     {
-        return new CallbackHandler(function () { return new FakeResponse(); });
+        return new FakeRequestHandler(new FakeResponse());
     }
 
     private function request(string $method = 'GET', array $token = [])

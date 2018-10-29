@@ -1,10 +1,12 @@
 {
-    "name": "polymorphine/context",
-    "description": "HTTP Request context utility services handled by PSR-15 middleware",
+    "name": "polymorphine/csrf",
+    "description": "CSRF protection service handled by PSR-15 middleware",
     "type": "library",
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": "^7.1",
+        "polymorphine/session": "@dev",
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0"
@@ -23,12 +25,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "Polymorphine\\Context\\": "src/"
+            "Polymorphine\\Csrf\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Polymorphine\\Context\\Tests\\": "tests/"
+            "Polymorphine\\Csrf\\Tests\\": "tests/"
         }
     },
     "scripts": {

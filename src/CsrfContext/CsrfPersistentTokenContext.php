@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Polymorphine/Context package.
+ * This file is part of Polymorphine/Csrf package.
  *
  * (c) Shudd3r <q3.shudder@gmail.com>
  *
@@ -9,17 +9,17 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Context\CsrfProtection;
+namespace Polymorphine\Csrf\CsrfContext;
 
-use Polymorphine\Context\CsrfProtection;
-use Polymorphine\Context\Session\SessionData;
+use Polymorphine\Csrf\CsrfContext;
+use Polymorphine\Session\SessionContext\SessionData;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 
-class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfProtection
+class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfContext
 {
     public const SESSION_CSRF_KEY   = 'csrf_key';
     public const SESSION_CSRF_TOKEN = 'csrf_token';

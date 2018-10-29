@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Polymorphine/Context package.
+ * This file is part of Polymorphine/Csrf package.
  *
  * (c) Shudd3r <q3.shudder@gmail.com>
  *
@@ -9,12 +9,12 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Context;
+namespace Polymorphine\Csrf;
 
-use Polymorphine\Context\CsrfProtection\CsrfToken;
+use Polymorphine\Csrf\CsrfContext\CsrfToken;
 
 
-interface CsrfProtection
+interface CsrfContext
 {
     public function appSignature(): CsrfToken;
 
