@@ -12,9 +12,9 @@
 namespace Polymorphine\Csrf\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Polymorphine\Csrf\CsrfContext\CsrfPersistentTokenContext;
-use Polymorphine\Csrf\CsrfContext\CsrfToken;
-use Polymorphine\Csrf\CsrfContext\Exception;
+use Polymorphine\Csrf\Context\PersistentTokenContext;
+use Polymorphine\Csrf\Token;
+use Polymorphine\Csrf\Exception;
 use Polymorphine\Session\SessionContext\SessionData;
 use Polymorphine\Csrf\Tests\Doubles\FakeRequestHandler;
 use Polymorphine\Csrf\Tests\Doubles\FakeServerRequest;
@@ -22,15 +22,15 @@ use Polymorphine\Csrf\Tests\Doubles\FakeResponse;
 use Polymorphine\Csrf\Tests\Doubles\FakeSession;
 
 
-class CsrfPersistentTokenContextTest extends TestCase
+class PersistentTokenContextTest extends TestCase
 {
     public function testInstantiation()
     {
         $session = new SessionData(new FakeSession(), $this->token('foo', 'bar'));
-        $guard   = new CsrfPersistentTokenContext($session);
-        $this->assertInstanceOf(CsrfPersistentTokenContext::class, $guard);
-        $this->assertEquals('foo', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertEquals('bar', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_TOKEN));
+        $guard   = new PersistentTokenContext($session);
+        $this->assertInstanceOf(PersistentTokenContext::class, $guard);
+        $this->assertEquals('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
+        $this->assertEquals('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
     }
 
     /**
@@ -64,7 +64,7 @@ class CsrfPersistentTokenContextTest extends TestCase
         $handler = $this->handler();
         $guard   = $this->guard();
         $request = $this->request($method);
-        $this->expectException(Exception\CsrfTokenMismatchException::class);
+        $this->expectException(Exception\TokenMismatchException::class);
         $guard->process($request, $handler);
     }
 
@@ -92,7 +92,7 @@ class CsrfPersistentTokenContextTest extends TestCase
         $token   = $this->token('name', 'hash-0001');
         $guard   = $this->guard($token);
         $request = $this->request($method, ['name' => 'hash-foo']);
-        $this->expectException(Exception\CsrfTokenMismatchException::class);
+        $this->expectException(Exception\TokenMismatchException::class);
         $guard->process($request, $this->handler());
     }
 
@@ -106,21 +106,21 @@ class CsrfPersistentTokenContextTest extends TestCase
         $token   = $this->token('name', 'hash-0001');
         $guard   = $this->guard($token);
         $request = $this->request($method, ['something' => 'hash-0001']);
-        $this->expectException(Exception\CsrfTokenMismatchException::class);
+        $this->expectException(Exception\TokenMismatchException::class);
         $guard->process($request, $this->handler());
     }
 
     public function testSessionTokenIsClearedOnTokenMismatch()
     {
         $session = new SessionData($manager = new FakeSession(), $this->token('foo', 'bar'));
-        $guard   = new CsrfPersistentTokenContext($session);
+        $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['something' => 'name']);
         try {
             $guard->process($request, $this->handler());
             $this->fail('Exception should be thrown');
-        } catch (Exception\CsrfTokenMismatchException $e) {
-            $this->assertFalse($session->has(CsrfPersistentTokenContext::SESSION_CSRF_KEY));
-            $this->assertFalse($session->has(CsrfPersistentTokenContext::SESSION_CSRF_TOKEN));
+        } catch (Exception\TokenMismatchException $e) {
+            $this->assertFalse($session->has(PersistentTokenContext::SESSION_CSRF_KEY));
+            $this->assertFalse($session->has(PersistentTokenContext::SESSION_CSRF_TOKEN));
             $session->commit();
             $this->assertSame([], $manager->data);
         }
@@ -129,16 +129,16 @@ class CsrfPersistentTokenContextTest extends TestCase
     public function testSessionTokenIsPreservedForValidRequest()
     {
         $session = new SessionData($manager = new FakeSession(), $this->token('foo', 'bar'));
-        $guard   = new CsrfPersistentTokenContext($session);
+        $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['foo' => 'bar']);
         $guard->process($request, $this->handler());
-        $this->assertSame('foo', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertSame('bar', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_TOKEN));
+        $this->assertSame('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
+        $this->assertSame('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
 
         $request = $this->request('GET');
         $guard->process($request, $this->handler());
-        $this->assertSame('foo', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertSame('bar', $session->get(CsrfPersistentTokenContext::SESSION_CSRF_TOKEN));
+        $this->assertSame('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
+        $this->assertSame('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
     }
 
     public function testGenerateTokenGeneratesTokenOnce()
@@ -159,8 +159,8 @@ class CsrfPersistentTokenContextTest extends TestCase
         $guard->resetToken();
 
         $newToken = $guard->appSignature();
-        $this->assertInstanceOf(CsrfToken::class, $newToken);
-        $this->assertInstanceOf(CsrfToken::class, $token);
+        $this->assertInstanceOf(Token::class, $newToken);
+        $this->assertInstanceOf(Token::class, $token);
         $this->assertNotEquals($token, $newToken);
     }
 
@@ -174,9 +174,9 @@ class CsrfPersistentTokenContextTest extends TestCase
         return [['GET'], ['HEAD'], ['OPTIONS']];
     }
 
-    private function guard(array $token = []): CsrfPersistentTokenContext
+    private function guard(array $token = []): PersistentTokenContext
     {
-        return new CsrfPersistentTokenContext(new SessionData(new FakeSession(), $token));
+        return new PersistentTokenContext(new SessionData(new FakeSession(), $token));
     }
 
     private function handler()
@@ -195,8 +195,8 @@ class CsrfPersistentTokenContextTest extends TestCase
     private function token($key, $value): array
     {
         return [
-            CsrfPersistentTokenContext::SESSION_CSRF_KEY   => $key,
-            CsrfPersistentTokenContext::SESSION_CSRF_TOKEN => $value
+            PersistentTokenContext::SESSION_CSRF_KEY   => $key,
+            PersistentTokenContext::SESSION_CSRF_TOKEN => $value
         ];
     }
 }

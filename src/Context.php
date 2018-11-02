@@ -9,11 +9,12 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Csrf\CsrfContext\Exception;
-
-use RuntimeException;
+namespace Polymorphine\Csrf;
 
 
-class CsrfTokenMismatchException extends RuntimeException
+interface Context
 {
+    public function appSignature(): Token;
+
+    public function resetToken(): void;
 }

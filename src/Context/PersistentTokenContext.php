@@ -9,9 +9,11 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Csrf\CsrfContext;
+namespace Polymorphine\Csrf\Context;
 
-use Polymorphine\Csrf\CsrfContext;
+use Polymorphine\Csrf\Context;
+use Polymorphine\Csrf\Token;
+use Polymorphine\Csrf\Exception;
 use Polymorphine\Session\SessionContext\SessionData;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -19,7 +21,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 
-class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfContext
+class PersistentTokenContext implements MiddlewareInterface, Context
 {
     public const SESSION_CSRF_KEY   = 'csrf_key';
     public const SESSION_CSRF_TOKEN = 'csrf_token';
@@ -44,7 +46,7 @@ class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfContext
         return $handler->handle($request);
     }
 
-    public function appSignature(): CsrfToken
+    public function appSignature(): Token
     {
         return $this->token ?: $this->token = $this->sessionToken() ?? $this->generateToken();
     }
@@ -64,22 +66,22 @@ class CsrfPersistentTokenContext implements MiddlewareInterface, CsrfContext
 
         $this->session->remove(self::SESSION_CSRF_KEY);
         $this->session->remove(self::SESSION_CSRF_TOKEN);
-        throw new Exception\CsrfTokenMismatchException();
+        throw new Exception\TokenMismatchException();
     }
 
-    private function sessionToken(): ?CsrfToken
+    private function sessionToken(): ?Token
     {
         if (!$this->session->has(self::SESSION_CSRF_KEY)) { return null; }
 
-        return new CsrfToken(
+        return new Token(
             $this->session->get(self::SESSION_CSRF_KEY),
             $this->session->get(self::SESSION_CSRF_TOKEN)
         );
     }
 
-    private function generateToken(): CsrfToken
+    private function generateToken(): Token
     {
-        $token = new CsrfToken(uniqid(), bin2hex(random_bytes(32)));
+        $token = new Token(uniqid(), bin2hex(random_bytes(32)));
         $this->session->set(self::SESSION_CSRF_KEY, $token->name);
         $this->session->set(self::SESSION_CSRF_TOKEN, $token->hash);
 

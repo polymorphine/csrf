@@ -9,10 +9,10 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Csrf\CsrfContext;
+namespace Polymorphine\Csrf;
 
 
-class CsrfToken
+class Token
 {
     public $name;
     public $hash;
