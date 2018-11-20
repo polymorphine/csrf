@@ -12,7 +12,7 @@
 namespace Polymorphine\Csrf;
 
 
-interface Context
+interface CsrfContext
 {
     public function appSignature(): Token;
 

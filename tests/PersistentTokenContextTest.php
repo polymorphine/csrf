@@ -12,7 +12,7 @@
 namespace Polymorphine\Csrf\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Polymorphine\Csrf\Context\PersistentTokenContext;
+use Polymorphine\Csrf\CsrfContext\PersistentTokenContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
 use Polymorphine\Session\SessionContext\SessionData;

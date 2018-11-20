@@ -9,9 +9,9 @@
  * with this source code in the file LICENSE.
  */
 
-namespace Polymorphine\Csrf\Context;
+namespace Polymorphine\Csrf\CsrfContext;
 
-use Polymorphine\Csrf\Context;
+use Polymorphine\Csrf\CsrfContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
 use Polymorphine\Session\SessionContext\SessionData;
@@ -21,7 +21,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 
-class PersistentTokenContext implements MiddlewareInterface, Context
+class PersistentTokenContext implements MiddlewareInterface, CsrfContext
 {
     public const SESSION_CSRF_KEY   = 'csrf_key';
     public const SESSION_CSRF_TOKEN = 'csrf_token';
