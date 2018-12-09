@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Polymorphine\Csrf\CsrfContext\PersistentTokenContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
-use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Session\SessionStorage;
 use Polymorphine\Csrf\Tests\Doubles\FakeRequestHandler;
 use Polymorphine\Csrf\Tests\Doubles\FakeServerRequest;
 use Polymorphine\Csrf\Tests\Doubles\FakeResponse;
@@ -26,7 +26,7 @@ class PersistentTokenContextTest extends TestCase
 {
     public function testInstantiation()
     {
-        $session = new SessionData(new FakeSession(), $this->token('foo', 'bar'));
+        $session = new SessionStorage(new FakeSession(), $this->token('foo', 'bar'));
         $guard   = new PersistentTokenContext($session);
         $this->assertInstanceOf(PersistentTokenContext::class, $guard);
         $this->assertEquals('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
@@ -112,7 +112,7 @@ class PersistentTokenContextTest extends TestCase
 
     public function testSessionTokenIsClearedOnTokenMismatch()
     {
-        $session = new SessionData($manager = new FakeSession(), $this->token('foo', 'bar'));
+        $session = new SessionStorage($manager = new FakeSession(), $this->token('foo', 'bar'));
         $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['something' => 'name']);
         try {
@@ -128,7 +128,7 @@ class PersistentTokenContextTest extends TestCase
 
     public function testSessionTokenIsPreservedForValidRequest()
     {
-        $session = new SessionData($manager = new FakeSession(), $this->token('foo', 'bar'));
+        $session = new SessionStorage($manager = new FakeSession(), $this->token('foo', 'bar'));
         $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['foo' => 'bar']);
         $guard->process($request, $this->handler());
@@ -176,7 +176,7 @@ class PersistentTokenContextTest extends TestCase
 
     private function guard(array $token = []): PersistentTokenContext
     {
-        return new PersistentTokenContext(new SessionData(new FakeSession(), $token));
+        return new PersistentTokenContext(new SessionStorage(new FakeSession(), $token));
     }
 
     private function handler()

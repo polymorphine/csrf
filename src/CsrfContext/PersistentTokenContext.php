@@ -14,7 +14,7 @@ namespace Polymorphine\Csrf\CsrfContext;
 use Polymorphine\Csrf\CsrfContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
-use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Session\SessionStorage;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,7 +29,7 @@ class PersistentTokenContext implements MiddlewareInterface, CsrfContext
     private $session;
     private $token;
 
-    public function __construct(SessionData $session)
+    public function __construct(SessionStorage $session)
     {
         $this->session = $session;
     }

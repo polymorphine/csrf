@@ -12,7 +12,7 @@
 namespace Polymorphine\Csrf\Tests\Doubles;
 
 use Polymorphine\Session\SessionContext;
-use Polymorphine\Session\SessionContext\SessionData;
+use Polymorphine\Session\SessionStorage;
 
 
 class FakeSession implements SessionContext
@@ -23,11 +23,11 @@ class FakeSession implements SessionContext
     {
     }
 
-    public function data(): SessionData
+    public function storage(): SessionStorage
     {
     }
 
-    public function resetContext(): void
+    public function reset(): void
     {
     }
 
