@@ -5,16 +5,14 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": "^7.1",
-        "polymorphine/session": "@dev",
+        "php": "^7.4 || ^8.0",
+        "polymorphine/session": "^0.1.0",
         "psr/http-message": "^1.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0"
     },
     "require-dev": {
-        "polymorphine/cs": "@dev",
-        "phpunit/phpunit": "^7.0",
-        "php-coveralls/php-coveralls": "^2.0"
+        "polymorphine/dev": "0.1.*"
     },
     "license": "MIT",
     "authors": [
@@ -32,9 +30,5 @@
         "psr-4": {
             "Polymorphine\\Csrf\\Tests\\": "tests/"
         }
-    },
-    "scripts": {
-        "run-tests": "phpunit --configuration phpunit.xml.dist",
-        "style-check": "polymorphine-cs"
     }
 }
