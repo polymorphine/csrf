@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Csrf package.
@@ -14,10 +14,14 @@ namespace Polymorphine\Csrf;
 
 class Token
 {
-    public $name;
-    public $hash;
+    public string $name;
+    public string $hash;
 
-    public function __construct($name, $hash)
+    /**
+     * @param string $name
+     * @param string $hash
+     */
+    public function __construct(string $name, string $hash)
     {
         $this->name = $name;
         $this->hash = $hash;

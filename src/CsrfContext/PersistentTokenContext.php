@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Csrf package.
@@ -26,14 +26,18 @@ class PersistentTokenContext implements MiddlewareInterface, CsrfContext
     public const SESSION_CSRF_KEY   = 'csrf_key';
     public const SESSION_CSRF_TOKEN = 'csrf_token';
 
-    private $session;
-    private $token;
+    private SessionStorage $session;
+    private ?Token         $token;
 
+    /**
+     * @param SessionStorage $session
+     */
     public function __construct(SessionStorage $session)
     {
         $this->session = $session;
     }
 
+    /** {@inheritDoc} */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $unsafeMethods     = ['POST', 'PUT', 'DELETE', 'PATCH', 'TRACE', 'CONNECT'];
@@ -46,11 +50,13 @@ class PersistentTokenContext implements MiddlewareInterface, CsrfContext
         return $handler->handle($request);
     }
 
+    /** {@inheritDoc} */
     public function appSignature(): Token
     {
-        return $this->token ?: $this->token = $this->sessionToken() ?? $this->generateToken();
+        return $this->token ??= $this->sessionToken() ?? $this->generateToken();
     }
 
+    /** {@inheritDoc} */
     public function resetToken(): void
     {
         $this->session->remove(static::SESSION_CSRF_KEY);

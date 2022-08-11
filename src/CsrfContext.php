@@ -14,7 +14,17 @@ namespace Polymorphine\Csrf;
 
 interface CsrfContext
 {
+    /**
+     * Returns existing or generates new Token.
+     *
+     * @return Token
+     */
     public function appSignature(): Token;
 
+    /**
+     * Invalidates existing Token.
+     *
+     * @return void
+     */
     public function resetToken(): void;
 }
