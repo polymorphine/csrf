@@ -15,24 +15,10 @@ use PHPUnit\Framework\TestCase;
 use Polymorphine\Csrf\CsrfContext\PersistentTokenContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
-use Polymorphine\Session\SessionStorage\ContextSessionStorage;
-use Polymorphine\Csrf\Tests\Doubles\FakeRequestHandler;
-use Polymorphine\Csrf\Tests\Doubles\FakeServerRequest;
-use Polymorphine\Csrf\Tests\Doubles\FakeResponse;
-use Polymorphine\Csrf\Tests\Doubles\FakeSession;
 
 
 class PersistentTokenContextTest extends TestCase
 {
-    public function testInstantiation()
-    {
-        $session = new ContextSessionStorage(new FakeSession(), $this->token('foo', 'bar'));
-        $guard   = new PersistentTokenContext($session);
-        $this->assertInstanceOf(PersistentTokenContext::class, $guard);
-        $this->assertEquals('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertEquals('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
-    }
-
     /**
      * @dataProvider safeMethods
      *
@@ -112,33 +98,31 @@ class PersistentTokenContextTest extends TestCase
 
     public function testSessionTokenIsClearedOnTokenMismatch()
     {
-        $session = new ContextSessionStorage($manager = new FakeSession(), $this->token('foo', 'bar'));
+        $token   = $this->token('foo', 'bar');
+        $session = new Doubles\FakeSessionStorage($token + ['other_data' => 'baz']);
         $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['something' => 'name']);
         try {
             $guard->process($request, $this->handler());
             $this->fail('Exception should be thrown');
         } catch (Exception\TokenMismatchException $e) {
-            $this->assertFalse($session->has(PersistentTokenContext::SESSION_CSRF_KEY));
-            $this->assertFalse($session->has(PersistentTokenContext::SESSION_CSRF_TOKEN));
-            $session->commit();
-            $this->assertSame([], $manager->data);
+            $this->assertFalse($session->tokenExists($token));
+            $this->assertSame('baz', $session->get('other_data'));
         }
     }
 
     public function testSessionTokenIsPreservedForValidRequest()
     {
-        $session = new ContextSessionStorage($manager = new FakeSession(), $this->token('foo', 'bar'));
+        $token   = $this->token('foo', 'bar');
+        $session = new Doubles\FakeSessionStorage($token);
         $guard   = new PersistentTokenContext($session);
         $request = $this->request('POST', ['foo' => 'bar']);
         $guard->process($request, $this->handler());
-        $this->assertSame('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertSame('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
+        $this->assertTrue($session->tokenExists($token));
 
-        $request = $this->request('GET');
+        $request = $this->request();
         $guard->process($request, $this->handler());
-        $this->assertSame('foo', $session->get(PersistentTokenContext::SESSION_CSRF_KEY));
-        $this->assertSame('bar', $session->get(PersistentTokenContext::SESSION_CSRF_TOKEN));
+        $this->assertTrue($session->tokenExists($token));
     }
 
     public function testGenerateTokenGeneratesTokenOnce()
@@ -164,29 +148,29 @@ class PersistentTokenContextTest extends TestCase
         $this->assertNotEquals($token, $newToken);
     }
 
-    public function unsafeMethods()
+    public function unsafeMethods(): array
     {
         return [['POST'], ['PUT'], ['DELETE'], ['PATCH'], ['TRACE'], ['CONNECT']];
     }
 
-    public function safeMethods()
+    public function safeMethods(): array
     {
         return [['GET'], ['HEAD'], ['OPTIONS']];
     }
 
     private function guard(array $token = []): PersistentTokenContext
     {
-        return new PersistentTokenContext(new ContextSessionStorage(new FakeSession(), $token));
+        return new PersistentTokenContext(new Doubles\FakeSessionStorage($token));
     }
 
-    private function handler()
+    private function handler(): Doubles\FakeRequestHandler
     {
-        return new FakeRequestHandler(new FakeResponse());
+        return new Doubles\FakeRequestHandler(new Doubles\FakeResponse());
     }
 
-    private function request(string $method = 'GET', array $token = [])
+    private function request(string $method = 'GET', array $token = []): Doubles\FakeServerRequest
     {
-        $request = new FakeServerRequest($method);
+        $request = new Doubles\FakeServerRequest($method);
 
         $request->parsed = $token;
         return $request;
