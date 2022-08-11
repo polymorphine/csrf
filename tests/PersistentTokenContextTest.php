@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Polymorphine\Csrf\CsrfContext\PersistentTokenContext;
 use Polymorphine\Csrf\Token;
 use Polymorphine\Csrf\Exception;
+use Psr\Http\Message\ResponseInterface;
 
 
 class PersistentTokenContextTest extends TestCase
@@ -26,18 +27,9 @@ class PersistentTokenContextTest extends TestCase
      */
     public function testMatchingSkippedForSafeMethodRequests($method)
     {
-        $handler = $this->handler();
-        $guard   = $this->guard();
-        $request = $this->request($method);
-        $this->assertSame(200, $guard->process($request, $handler)->getStatusCode());
-
-        $guard   = $this->guard($this->token('foo', 'bar'));
-        $request = $this->request($method);
-        $this->assertSame(200, $guard->process($request, $handler)->getStatusCode());
-
-        $guard   = $this->guard($this->token('foo', 'bar'));
-        $request = $this->request($method, ['baz' => 'something']);
-        $this->assertSame(200, $guard->process($request, $handler)->getStatusCode());
+        $this->assertResponse($this->guard(), $this->request($method));
+        $this->assertResponse($this->guard($this->token('foo', 'x')), $this->request($method));
+        $this->assertResponse($this->guard($this->token('foo', 'x')), $this->request($method, ['bar' => 'y']));
     }
 
     /**
@@ -47,11 +39,10 @@ class PersistentTokenContextTest extends TestCase
      */
     public function testMissingSessionToken_ThrowsException($method)
     {
-        $handler = $this->handler();
         $guard   = $this->guard();
         $request = $this->request($method);
         $this->expectException(Exception\TokenMismatchException::class);
-        $guard->process($request, $handler);
+        $guard->process($request, $this->handler());
     }
 
     /**
@@ -59,13 +50,9 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testMatchingRequestToken_ReturnsOKResponse($method)
+    public function testMatchingRequestToken_ReturnsResponse($method)
     {
-        $token   = $this->token('name', 'hash');
-        $handler = $this->handler();
-        $guard   = $this->guard($token);
-        $request = $this->request($method, ['name' => 'hash']);
-        $this->assertSame(200, $guard->process($request, $handler)->getStatusCode());
+        $this->assertResponse($this->guard($this->token('foo', 'hash')), $this->request($method, ['foo' => 'hash']));
     }
 
     /**
@@ -75,8 +62,7 @@ class PersistentTokenContextTest extends TestCase
      */
     public function testRequestTokenHashMismatch_ThrowsException($method)
     {
-        $token   = $this->token('name', 'hash-0001');
-        $guard   = $this->guard($token);
+        $guard   = $this->guard($this->token('name', 'hash-0001'));
         $request = $this->request($method, ['name' => 'hash-foo']);
         $this->expectException(Exception\TokenMismatchException::class);
         $guard->process($request, $this->handler());
@@ -89,9 +75,8 @@ class PersistentTokenContextTest extends TestCase
      */
     public function testRequestTokenKeyMismatch_ThrowsException($method)
     {
-        $token   = $this->token('name', 'hash-0001');
-        $guard   = $this->guard($token);
-        $request = $this->request($method, ['something' => 'hash-0001']);
+        $guard   = $this->guard($this->token('foo', 'hash-0001'));
+        $request = $this->request($method, ['bar' => 'hash-0001']);
         $this->expectException(Exception\TokenMismatchException::class);
         $guard->process($request, $this->handler());
     }
@@ -120,7 +105,7 @@ class PersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
         $this->assertTrue($session->tokenExists($token));
 
-        $request = $this->request();
+        $request = $this->request('GET');
         $guard->process($request, $this->handler());
         $this->assertTrue($session->tokenExists($token));
     }
@@ -158,6 +143,12 @@ class PersistentTokenContextTest extends TestCase
         return [['GET'], ['HEAD'], ['OPTIONS']];
     }
 
+    private function assertResponse(PersistentTokenContext $guard, Doubles\FakeServerRequest $request)
+    {
+        $handler = new Doubles\FakeRequestHandler(new Doubles\DummyResponse());
+        $this->assertInstanceOf(ResponseInterface::class, $guard->process($request, $handler));
+    }
+
     private function guard(array $token = []): PersistentTokenContext
     {
         return new PersistentTokenContext(new Doubles\FakeSessionStorage($token));
@@ -165,15 +156,12 @@ class PersistentTokenContextTest extends TestCase
 
     private function handler(): Doubles\FakeRequestHandler
     {
-        return new Doubles\FakeRequestHandler(new Doubles\FakeResponse());
+        return new Doubles\FakeRequestHandler(new Doubles\DummyResponse());
     }
 
-    private function request(string $method = 'GET', array $token = []): Doubles\FakeServerRequest
+    private function request(string $method, array $token = []): Doubles\FakeServerRequest
     {
-        $request = new Doubles\FakeServerRequest($method);
-
-        $request->parsed = $token;
-        return $request;
+        return new Doubles\FakeServerRequest($method, $token);
     }
 
     private function token($key, $value): array

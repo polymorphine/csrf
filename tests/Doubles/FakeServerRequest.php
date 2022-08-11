@@ -18,16 +18,13 @@ use Psr\Http\Message\UriInterface;
 
 class FakeServerRequest implements ServerRequestInterface
 {
-    public $uri;
-    public $method;
-    public $attr    = [];
-    public $cookies = [];
-    public $parsed  = [];
+    public string $method;
+    public array  $post;
 
-    public function __construct(string $method = 'GET', UriInterface $uri = null)
+    public function __construct(string $method = 'GET', array $post = [])
     {
         $this->method = $method;
-        $this->uri    = $uri;
+        $this->post   = $post;
     }
 
     public function getMethod()
@@ -37,15 +34,10 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getUri()
     {
-        return $this->uri ?: FakeUri::fromString('//example.com/foo/bar');
     }
 
     public function getRequestTarget()
     {
-        $query = $this->getUri()->getquery();
-        $path  = $this->getUri()->getPath();
-
-        return $query ? $path . '?' . $query : $path;
     }
 
     public function getProtocolVersion()
@@ -110,7 +102,6 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getCookieParams()
     {
-        return $this->cookies;
     }
 
     public function withCookieParams(array $cookies)
@@ -135,7 +126,7 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getParsedBody()
     {
-        return $this->parsed;
+        return $this->post;
     }
 
     public function withParsedBody($data)
@@ -144,18 +135,14 @@ class FakeServerRequest implements ServerRequestInterface
 
     public function getAttributes()
     {
-        return $this->attr;
     }
 
     public function getAttribute($name, $default = null)
     {
-        return $this->attr[$name] ?? $default;
     }
 
     public function withAttribute($name, $value)
     {
-        $this->attr[$name] = $value;
-        return $this;
     }
 
     public function withoutAttribute($name)

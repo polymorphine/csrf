@@ -11,32 +11,14 @@
 
 namespace Polymorphine\Csrf\Tests\Doubles;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
 
-class FakeResponse implements ResponseInterface
+class DummyResponse implements ResponseInterface
 {
-    public $body;
-    public $headers  = [];
-    public $protocol = '1.1';
-    public $status   = 200;
-    public $reason   = 'OK';
-
-    /**
-     * @var ServerRequestInterface
-     */
-    public $fromRequest;
-
-    public function __construct($body = '')
-    {
-        $this->body = $body;
-    }
-
     public function getProtocolVersion()
     {
-        return $this->protocol;
     }
 
     public function withProtocolVersion($version)
@@ -45,7 +27,6 @@ class FakeResponse implements ResponseInterface
 
     public function getHeaders()
     {
-        return $this->headers;
     }
 
     public function hasHeader($name)
@@ -54,7 +35,6 @@ class FakeResponse implements ResponseInterface
 
     public function getHeader($name)
     {
-        return $this->headers[$name] ?? [];
     }
 
     public function getHeaderLine($name)
@@ -63,14 +43,10 @@ class FakeResponse implements ResponseInterface
 
     public function withHeader($name, $value)
     {
-        $this->headers[$name] = [$value];
-        return $this;
     }
 
     public function withAddedHeader($name, $value)
     {
-        $this->headers[$name][] = $value;
-        return $this;
     }
 
     public function withoutHeader($name)
@@ -79,18 +55,14 @@ class FakeResponse implements ResponseInterface
 
     public function getBody()
     {
-        return is_string($this->body) ? new FakeStream($this->body) : $this->body;
     }
 
     public function withBody(StreamInterface $body)
     {
-        $this->body = $body;
-        return $this;
     }
 
     public function getStatusCode()
     {
-        return $this->status;
     }
 
     public function withStatus($code, $reasonPhrase = '')
@@ -99,6 +71,5 @@ class FakeResponse implements ResponseInterface
 
     public function getReasonPhrase()
     {
-        return $this->reason;
     }
 }
