@@ -14,12 +14,13 @@ namespace Polymorphine\Csrf\Tests\Doubles;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Closure;
 
 
 class FakeRequestHandler implements RequestHandlerInterface
 {
-    private $response;
-    private $sideEffect;
+    private ResponseInterface $response;
+    private ?Closure          $sideEffect;
 
     public function __construct(ResponseInterface $response, callable $sideEffect = null)
     {
