@@ -1,0 +1,8 @@
+{
+    "package.name": "Polymorphine/Csrf",
+    "repository.name": "polymorphine/csrf",
+    "package.description": "CSRF protection service handled by PSR-15 middleware",
+    "namespace.src": "Polymorphine\\Csrf",
+    "author.name": "Shudd3r",
+    "author.email": "q3.shudder@gmail.com"
+}
