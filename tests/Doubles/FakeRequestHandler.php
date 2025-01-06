@@ -22,7 +22,7 @@ class FakeRequestHandler implements RequestHandlerInterface
     private ResponseInterface $response;
     private ?Closure          $sideEffect;
 
-    public function __construct(ResponseInterface $response, callable $sideEffect = null)
+    public function __construct(ResponseInterface $response, ?callable $sideEffect = null)
     {
         $this->response   = $response;
         $this->sideEffect = $sideEffect;
