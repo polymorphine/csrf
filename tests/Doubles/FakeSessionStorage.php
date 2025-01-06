@@ -28,7 +28,7 @@ class FakeSessionStorage implements SessionStorage
         return null;
     }
 
-    public function newUserContext(string $userId = null): void
+    public function newUserContext(?string $userId = null): void
     {
     }
 
