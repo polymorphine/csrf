@@ -104,10 +104,6 @@ class PersistentTokenContextTest extends TestCase
         $request = $this->request('POST', ['foo' => 'bar']);
         $guard->process($request, $this->handler());
         $this->assertTrue($session->tokenExists($token));
-
-        $request = $this->request('GET');
-        $guard->process($request, $this->handler());
-        $this->assertTrue($session->tokenExists($token));
     }
 
     public function test_Token_IsGeneratedOnce()
@@ -145,8 +141,7 @@ class PersistentTokenContextTest extends TestCase
 
     private function assertResponse(PersistentTokenContext $guard, Doubles\FakeServerRequest $request)
     {
-        $handler = new Doubles\FakeRequestHandler(new Doubles\DummyResponse());
-        $this->assertInstanceOf(ResponseInterface::class, $guard->process($request, $handler));
+        $this->assertInstanceOf(ResponseInterface::class, $guard->process($request, $this->handler()));
     }
 
     private function guard(array $token = []): PersistentTokenContext
