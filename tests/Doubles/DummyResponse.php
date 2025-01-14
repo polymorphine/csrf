@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /*
  * This file is part of Polymorphine/Csrf package.
@@ -17,59 +17,75 @@ use Psr\Http\Message\StreamInterface;
 
 class DummyResponse implements ResponseInterface
 {
-    public function getProtocolVersion()
+    public StreamInterface $body;
+
+    public function getProtocolVersion(): string
     {
+        return '1.1';
     }
 
-    public function withProtocolVersion($version)
+    public function withProtocolVersion($version): self
     {
+        return $this;
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
+        return [];
     }
 
-    public function hasHeader($name)
+    public function hasHeader($name): bool
     {
+        return false;
     }
 
-    public function getHeader($name)
+    public function getHeader($name): array
     {
+        return [];
     }
 
-    public function getHeaderLine($name)
+    public function getHeaderLine($name): string
     {
+        return '';
     }
 
-    public function withHeader($name, $value)
+    public function withHeader($name, $value): self
     {
+        return $this;
     }
 
-    public function withAddedHeader($name, $value)
+    public function withAddedHeader($name, $value): self
     {
+        return $this;
     }
 
-    public function withoutHeader($name)
+    public function withoutHeader($name): self
     {
+        return $this;
     }
 
-    public function getBody()
+    public function getBody(): StreamInterface
     {
+        return $this->body;
     }
 
-    public function withBody(StreamInterface $body)
+    public function withBody(StreamInterface $body): self
     {
+        return $this;
     }
 
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
+        return 200;
     }
 
-    public function withStatus($code, $reasonPhrase = '')
+    public function withStatus($code, $reasonPhrase = ''): self
     {
+        return $this;
     }
 
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
+        return 'OK';
     }
 }
