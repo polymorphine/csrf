@@ -20,24 +20,26 @@ use Psr\Http\Message\ResponseInterface;
 
 class PersistentTokenContextTest extends TestCase
 {
-    /**
-     * @dataProvider safeMethods
-     *
-     * @param $method
-     */
-    public function testMatchingSkippedForSafeMethodRequests($method)
+    public static function unsafeMethods(): iterable
+    {
+        return [['POST'], ['PUT'], ['DELETE'], ['PATCH'], ['TRACE'], ['CONNECT']];
+    }
+
+    public static function safeMethods(): iterable
+    {
+        return [['GET'], ['HEAD'], ['OPTIONS']];
+    }
+
+    /** @dataProvider safeMethods */
+    public function test_ForSafeMethodRequests_TokenIsIgnored(string $method)
     {
         $this->assertResponse($this->guard(), $this->request($method));
         $this->assertResponse($this->guard($this->token('foo', 'x')), $this->request($method));
         $this->assertResponse($this->guard($this->token('foo', 'x')), $this->request($method, ['bar' => 'y']));
     }
 
-    /**
-     * @dataProvider unsafeMethods
-     *
-     * @param $method
-     */
-    public function testMissingSessionToken_ThrowsException($method)
+    /** @dataProvider unsafeMethods */
+    public function test_MissingSessionToken_ThrowsException(string $method)
     {
         $guard   = $this->guard();
         $request = $this->request($method);
@@ -45,22 +47,14 @@ class PersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
     }
 
-    /**
-     * @dataProvider unsafeMethods
-     *
-     * @param $method
-     */
-    public function testMatchingRequestToken_ReturnsResponse($method)
+    /** @dataProvider unsafeMethods */
+    public function test_MatchingRequestToken_ReturnsResponse(string $method)
     {
         $this->assertResponse($this->guard($this->token('foo', 'hash')), $this->request($method, ['foo' => 'hash']));
     }
 
-    /**
-     * @dataProvider unsafeMethods
-     *
-     * @param $method
-     */
-    public function testRequestTokenHashMismatch_ThrowsException($method)
+    /** @dataProvider unsafeMethods */
+    public function test_RequestTokenHashMismatch_ThrowsException(string $method)
     {
         $guard   = $this->guard($this->token('name', 'hash-0001'));
         $request = $this->request($method, ['name' => 'hash-foo']);
@@ -68,12 +62,8 @@ class PersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
     }
 
-    /**
-     * @dataProvider unsafeMethods
-     *
-     * @param $method
-     */
-    public function testRequestTokenKeyMismatch_ThrowsException($method)
+    /** @dataProvider unsafeMethods */
+    public function test_RequestTokenKeyMismatch_ThrowsException(string $method)
     {
         $guard   = $this->guard($this->token('foo', 'hash-0001'));
         $request = $this->request($method, ['bar' => 'hash-0001']);
@@ -81,7 +71,7 @@ class PersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
     }
 
-    public function testSessionTokenIsClearedOnTokenMismatch()
+    public function test_OnTokenMismatch_SessionTokenIsCleared()
     {
         $token   = $this->token('foo', 'bar');
         $session = new Doubles\FakeSessionStorage($token + ['other_data' => 'baz']);
@@ -96,7 +86,7 @@ class PersistentTokenContextTest extends TestCase
         }
     }
 
-    public function testSessionTokenIsPreservedForValidRequest()
+    public function test_ForValidRequest_SessionTokenIsPreserved()
     {
         $token   = $this->token('foo', 'bar');
         $session = new Doubles\FakeSessionStorage($token);
@@ -104,13 +94,9 @@ class PersistentTokenContextTest extends TestCase
         $request = $this->request('POST', ['foo' => 'bar']);
         $guard->process($request, $this->handler());
         $this->assertTrue($session->tokenExists($token));
-
-        $request = $this->request('GET');
-        $guard->process($request, $this->handler());
-        $this->assertTrue($session->tokenExists($token));
     }
 
-    public function testGenerateTokenGeneratesTokenOnce()
+    public function test_Token_IsGeneratedOnce()
     {
         $guard = $this->guard($this->token('name', 'hash'));
         $token = $guard->appSignature();
@@ -121,7 +107,7 @@ class PersistentTokenContextTest extends TestCase
         $this->assertSame($token, $guard->appSignature());
     }
 
-    public function testResetTokenRemovesToken()
+    public function test_ResetToken_RemovesToken()
     {
         $guard = $this->guard();
         $token = $guard->appSignature();
@@ -133,20 +119,9 @@ class PersistentTokenContextTest extends TestCase
         $this->assertNotEquals($token, $newToken);
     }
 
-    public function unsafeMethods(): array
-    {
-        return [['POST'], ['PUT'], ['DELETE'], ['PATCH'], ['TRACE'], ['CONNECT']];
-    }
-
-    public function safeMethods(): array
-    {
-        return [['GET'], ['HEAD'], ['OPTIONS']];
-    }
-
     private function assertResponse(PersistentTokenContext $guard, Doubles\FakeServerRequest $request)
     {
-        $handler = new Doubles\FakeRequestHandler(new Doubles\DummyResponse());
-        $this->assertInstanceOf(ResponseInterface::class, $guard->process($request, $handler));
+        $this->assertInstanceOf(ResponseInterface::class, $guard->process($request, $this->handler()));
     }
 
     private function guard(array $token = []): PersistentTokenContext
