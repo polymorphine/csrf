@@ -25,7 +25,7 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testMatchingSkippedForSafeMethodRequests($method)
+    public function test_ForSafeMethodRequests_TokenIsIgnored($method)
     {
         $this->assertResponse($this->guard(), $this->request($method));
         $this->assertResponse($this->guard($this->token('foo', 'x')), $this->request($method));
@@ -37,7 +37,7 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testMissingSessionToken_ThrowsException($method)
+    public function test_MissingSessionToken_ThrowsException($method)
     {
         $guard   = $this->guard();
         $request = $this->request($method);
@@ -50,7 +50,7 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testMatchingRequestToken_ReturnsResponse($method)
+    public function test_MatchingRequestToken_ReturnsResponse($method)
     {
         $this->assertResponse($this->guard($this->token('foo', 'hash')), $this->request($method, ['foo' => 'hash']));
     }
@@ -60,7 +60,7 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testRequestTokenHashMismatch_ThrowsException($method)
+    public function test_RequestTokenHashMismatch_ThrowsException($method)
     {
         $guard   = $this->guard($this->token('name', 'hash-0001'));
         $request = $this->request($method, ['name' => 'hash-foo']);
@@ -73,7 +73,7 @@ class PersistentTokenContextTest extends TestCase
      *
      * @param $method
      */
-    public function testRequestTokenKeyMismatch_ThrowsException($method)
+    public function test_RequestTokenKeyMismatch_ThrowsException($method)
     {
         $guard   = $this->guard($this->token('foo', 'hash-0001'));
         $request = $this->request($method, ['bar' => 'hash-0001']);
@@ -81,7 +81,7 @@ class PersistentTokenContextTest extends TestCase
         $guard->process($request, $this->handler());
     }
 
-    public function testSessionTokenIsClearedOnTokenMismatch()
+    public function test_OnTokenMismatch_SessionTokenIsCleared()
     {
         $token   = $this->token('foo', 'bar');
         $session = new Doubles\FakeSessionStorage($token + ['other_data' => 'baz']);
@@ -96,7 +96,7 @@ class PersistentTokenContextTest extends TestCase
         }
     }
 
-    public function testSessionTokenIsPreservedForValidRequest()
+    public function test_ForValidRequest_SessionTokenIsPreserved()
     {
         $token   = $this->token('foo', 'bar');
         $session = new Doubles\FakeSessionStorage($token);
@@ -110,7 +110,7 @@ class PersistentTokenContextTest extends TestCase
         $this->assertTrue($session->tokenExists($token));
     }
 
-    public function testGenerateTokenGeneratesTokenOnce()
+    public function test_Token_IsGeneratedOnce()
     {
         $guard = $this->guard($this->token('name', 'hash'));
         $token = $guard->appSignature();
@@ -121,7 +121,7 @@ class PersistentTokenContextTest extends TestCase
         $this->assertSame($token, $guard->appSignature());
     }
 
-    public function testResetTokenRemovesToken()
+    public function test_ResetToken_RemovesToken()
     {
         $guard = $this->guard();
         $token = $guard->appSignature();
