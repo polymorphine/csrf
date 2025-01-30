@@ -20,16 +20,6 @@ use Psr\Http\Message\ResponseInterface;
 
 class PersistentTokenContextTest extends TestCase
 {
-    public static function unsafeMethods(): iterable
-    {
-        return [['POST'], ['PUT'], ['DELETE'], ['PATCH'], ['TRACE'], ['CONNECT']];
-    }
-
-    public static function safeMethods(): iterable
-    {
-        return [['GET'], ['HEAD'], ['OPTIONS']];
-    }
-
     /** @dataProvider safeMethods */
     public function test_ForSafeMethodRequests_TokenIsIgnored(string $method)
     {
@@ -117,6 +107,16 @@ class PersistentTokenContextTest extends TestCase
         $this->assertInstanceOf(Token::class, $newToken);
         $this->assertInstanceOf(Token::class, $token);
         $this->assertNotEquals($token, $newToken);
+    }
+
+    public static function unsafeMethods(): iterable
+    {
+        return [['POST'], ['PUT'], ['DELETE'], ['PATCH'], ['TRACE'], ['CONNECT']];
+    }
+
+    public static function safeMethods(): iterable
+    {
+        return [['GET'], ['HEAD'], ['OPTIONS']];
     }
 
     private function assertResponse(PersistentTokenContext $guard, Doubles\FakeServerRequest $request)

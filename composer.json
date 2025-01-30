@@ -19,7 +19,7 @@
         "psr/http-server-middleware": "^1.0"
     },
     "require-dev": {
-        "polymorphine/dev": "0.5.*"
+        "polymorphine/dev": "0.6.*"
     },
     "autoload": {
         "psr-4": {
